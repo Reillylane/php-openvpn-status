@@ -55,7 +55,7 @@ class Status {
             // IP and Port
             preg_match('/(.*):([\d]+)/', $fields[1], $matches);
 
-			$client->realIp = $matches[1];
+            $client->realIp = $matches[1];
             $client->realPort = $matches[2];
 
             // Other Fields
@@ -90,7 +90,6 @@ class Status {
 			$client->vpnIp = $this->lookupIp($client->name);
 		}
 			
-                // $client->vpnIp = $ip;
                 $client->routingSince = $dateTime;
             }
         }
