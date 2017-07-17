@@ -54,7 +54,8 @@ class Status {
 
             // IP and Port
             preg_match('/(.*):([\d]+)/', $fields[1], $matches);
-            $client->realIp = $matches[1];
+
+			$client->realIp = $matches[1];
             $client->realPort = $matches[2];
 
             // Other Fields
@@ -79,7 +80,17 @@ class Status {
 
             $client = $this->findClient($name);
             if ($client) {
-                $client->vpnIp = $ip;
+			
+		$ipRegex = '\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b';
+		
+		if (preg_match($ipRegex, $ip)) {
+			$client->vpnIp = $ip;
+		}
+		else {
+			$client->vpnIp = $this->lookupIp($client->name);
+		}
+			
+                // $client->vpnIp = $ip;
                 $client->routingSince = $dateTime;
             }
         }
@@ -99,6 +110,36 @@ class Status {
 
         return false;
     }
+	
+	private function lookupIp($name) {
+		$file = '/etc/openvpn/staticclients/' . $name;
+		$ip = null;
+
+		if (file_exists($file)) {
+			$line = file($file)[0];
+			//echo $line;
+
+			$info = explode(' ', $line);
+
+			$ip = $info[1];
+			//echo $ip;
+		}
+		else {
+			$file = file('/etc/openvpn/ipp.txt');
+			foreach ($file as $line) {
+				if (strpos($line, $name) !== false) {
+					$info = explode(',', $line);
+					$ip = $info[1];
+					break;
+				}
+			}
+		}
+		if (! $ip) {
+			return 'Error finding Ip';
+		}
+		
+		return $ip;
+	}
 
     /**
      * @return mixed
@@ -184,3 +225,4 @@ class Status {
         $this->stats = $stats;
     }
 }
+
